@@ -26,12 +26,15 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   // Default placeholder text
-  String textToShow = "I Like Flutter";
+  String textToShow = "";
 
   void _updateText() {
     setState(() {
       // update the text
-      textToShow = "Flutter is Awesome!";
+      textToShow = "Press the door now!";
+
+      //add hiding code here
+
     });
   }
 
@@ -41,16 +44,25 @@ class _MainPageState extends State<MainPage> {
     return new Scaffold(
       backgroundColor: Colors.grey,
       appBar: new AppBar(
-        title: new Text("Hodor: Open Office Door"),
+        title: const Text("Hodor : KI labs"),
       ),
+
       body: new Center(
-          child: new RaisedButton(
-        onPressed: _updateText,
-            padding: new EdgeInsets.only(left: 20.0, right: 20.0,
-                top: 20.0, bottom: 20.0),
-        child: new Text("Open The Door",
-            style: new TextStyle(fontSize: 30.0, color: Colors.blue)),
-      )),
+        child: new Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            new Text(
+                textToShow,
+            style: new TextStyle(fontSize: 30.0, fontStyle: FontStyle.normal,
+                color: Colors.yellow)),
+            new RaisedButton(
+              child: const Text("Open The Door",
+                style: const TextStyle(fontSize: 30.0, color: Colors.blue)),
+                onPressed: _updateText,
+            padding: new EdgeInsets.all(20.0))
+          ],
+        ),
+      ),
     );
   }
 }
