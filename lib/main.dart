@@ -1,12 +1,20 @@
+import 'dart:async';
+import 'dart:developer';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+
+const String successMessage = "Now, Press the Door!";
+const String failureMessage = "Network Error! Try Again";
+const String url = 'https://dowerless-moose-6121.dataplicity.io/open';
+const String buttonLabel = "Open The Door";
 
 void main() => runApp(new HodorApp());
 
 class HodorApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-//    http.read("https://www.w3.org/TR/PNG/iso_8859-1.txt").then(debugPrint);
     return new MaterialApp(
       title: 'Hodor',
       theme: new ThemeData(
@@ -21,21 +29,46 @@ class MainPage extends StatefulWidget {
   MainPage({Key key}) : super(key: key);
 
   @override
-  _MainPageState createState() => new _MainPageState();
+  MainPageState createState() => new MainPageState();
 }
 
-class _MainPageState extends State<MainPage> {
-  // Default placeholder text
-  String textToShow = "";
+class MainPageState extends State<MainPage> {
+  String messageToDisplay = "";
 
-  void _updateText() {
+  void resetDisplay() async {
+    //Adding delay of 10 seconds
+      await new Future.delayed(const Duration(seconds: 10));
+      setState(() {
+        messageToDisplay = "";
+      });
+  }
+
+  void triggeDoorOpenRequest() async {
+    final client = new http.Client();
+    String responseBody = "";
+
+    try {
+      var response = await client.post(url);
+
+      if (response.statusCode == HttpStatus.OK) {
+        responseBody = successMessage;
+      } else {
+        log("Failed http call."); // Perhaps handle it somehow
+        responseBody = failureMessage;
+      }
+    } catch (exception) {
+      log(exception.toString());
+      responseBody = failureMessage;
+    }
+
+    //Update UI state now
     setState(() {
-      // update the text
-      textToShow = "Press the door now!";
-
-      //add hiding code here
-
+      messageToDisplay = responseBody;
     });
+
+    //reset so that user can clearly see change if button pressed again
+    resetDisplay();
+
   }
 
   @override
@@ -51,14 +84,13 @@ class _MainPageState extends State<MainPage> {
         child: new Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            new Text(
-                textToShow,
+            new Text('$messageToDisplay',
             style: new TextStyle(fontSize: 30.0, fontStyle: FontStyle.normal,
                 color: Colors.yellow)),
             new RaisedButton(
-              child: const Text("Open The Door",
+              child: const Text(buttonLabel,
                 style: const TextStyle(fontSize: 30.0, color: Colors.blue)),
-                onPressed: _updateText,
+                onPressed: () => triggeDoorOpenRequest(),
             padding: new EdgeInsets.all(20.0))
           ],
         ),
