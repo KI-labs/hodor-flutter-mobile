@@ -1,20 +1,12 @@
 import 'dart:async' show Future, StreamSubscription;
 import 'dart:developer';
-import 'dart:io'
-    show
-        HttpClient,
-        HttpClientBasicCredentials,
-        HttpClientCredentials,
-        HttpStatus;
+import 'dart:io' show HttpStatus;
 
 import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' show BaseClient, IOClient;
+import 'package:hodor_mobile/network.dart';
 
 import 'constants.dart' as Constants;
-
-typedef Future<bool> HttpAuthenticationCallback(
-    Uri uri, String scheme, String realm);
 
 class MainPage extends StatefulWidget {
   MainPage({Key key}) : super(key: key);
@@ -30,26 +22,10 @@ class MainPageState extends State<MainPage> {
 
   void resetDisplay() async {
     //Adding delay of 10 seconds
-    await new Future.delayed(const Duration(seconds: 10));
+    await new Future.delayed(const Duration(seconds: 5));
     setState(() {
       messageToDisplay = "";
     });
-  }
-
-  HttpAuthenticationCallback _basicAuthenticationCallback(
-          HttpClient client, HttpClientCredentials credentials) =>
-      (Uri uri, String scheme, String realm) {
-        client.addCredentials(uri, realm, credentials);
-        return new Future.value(true);
-      };
-
-  BaseClient createBasicAuthenticationIoHttpClient(
-      String userName, String password) {
-    final credentials = new HttpClientBasicCredentials(userName, password);
-
-    final client = new HttpClient();
-    client.authenticate = _basicAuthenticationCallback(client, credentials);
-    return new IOClient(client);
   }
 
   void triggeDoorOpenRequest() async {
@@ -59,11 +35,8 @@ class MainPageState extends State<MainPage> {
       String responseBody = "";
 
       try {
-        final http = createBasicAuthenticationIoHttpClient(
-            Constants.API_AUTHORIZATION_USERNAME,
-            Constants.API_AUTHORIZATION_PASSWORD);
-
-        var response = await http.post(Constants.MAIN_URL);
+        var httpClient = new NetworkLayer().getHttpClient();
+        var response = await httpClient.post(Constants.MAIN_URL);
 
         log("Successful response: " + response.body);
 
