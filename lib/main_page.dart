@@ -1,12 +1,20 @@
-import 'dart:async';
+import 'dart:async' show Future, StreamSubscription;
 import 'dart:developer';
-import 'dart:io';
+import 'dart:io'
+    show
+        HttpClient,
+        HttpClientBasicCredentials,
+        HttpClientCredentials,
+        HttpStatus;
 
 import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:http/http.dart' show BaseClient, IOClient;
 
-import 'constants.dart';
+import 'constants.dart' as Constants;
+
+typedef Future<bool> HttpAuthenticationCallback(
+    Uri uri, String scheme, String realm);
 
 class MainPage extends StatefulWidget {
   MainPage({Key key}) : super(key: key);
@@ -19,7 +27,6 @@ class MainPageState extends State<MainPage> {
   String messageToDisplay = "";
   BuildContext scaffoldContext;
   bool lastConnectionStatus = false; //synonym to isConnected
-  final client = new http.Client();
 
   void resetDisplay() async {
     //Adding delay of 10 seconds
@@ -29,6 +36,22 @@ class MainPageState extends State<MainPage> {
     });
   }
 
+  HttpAuthenticationCallback _basicAuthenticationCallback(
+          HttpClient client, HttpClientCredentials credentials) =>
+      (Uri uri, String scheme, String realm) {
+        client.addCredentials(uri, realm, credentials);
+        return new Future.value(true);
+      };
+
+  BaseClient createBasicAuthenticationIoHttpClient(
+      String userName, String password) {
+    final credentials = new HttpClientBasicCredentials(userName, password);
+
+    final client = new HttpClient();
+    client.authenticate = _basicAuthenticationCallback(client, credentials);
+    return new IOClient(client);
+  }
+
   void triggeDoorOpenRequest() async {
     if (!lastConnectionStatus) {
       handleInternetConnectivity(lastConnectionStatus);
@@ -36,19 +59,24 @@ class MainPageState extends State<MainPage> {
       String responseBody = "";
 
       try {
-        var response = await client.post(MAIN_URL);
+        final http = createBasicAuthenticationIoHttpClient(
+            Constants.API_AUTHORIZATION_USERNAME,
+            Constants.API_AUTHORIZATION_PASSWORD);
+
+        var response = await http.post(Constants.MAIN_URL);
+
         log("Successful response: " + response.body);
 
         if (response.statusCode == HttpStatus.OK) {
           log("Successful http call."); // Perhaps handle it somehow
-          responseBody = SUCCESS_OPEN_DOOR_MSG;
+          responseBody = Constants.SUCCESS_OPEN_DOOR_MSG;
         } else {
           log("Failed http call."); // Perhaps handle it somehow
-          responseBody = FAILURE_OPEN_DOOR_MSG;
+          responseBody = Constants.FAILURE_OPEN_DOOR_MSG;
         }
       } catch (exception) {
         log(exception.toString());
-        responseBody = FAILURE_OPEN_DOOR_MSG;
+        responseBody = Constants.FAILURE_OPEN_DOOR_MSG;
       }
 
       //Update UI state now
@@ -90,7 +118,7 @@ class MainPageState extends State<MainPage> {
     return new Scaffold(
         backgroundColor: Colors.grey,
         appBar: new AppBar(
-          title: const Text(APP_TITLE),
+          title: const Text(Constants.APP_TITLE),
         ),
         body: new Builder(builder: (BuildContext context) {
           scaffoldContext = context;
@@ -121,7 +149,7 @@ class MainPageState extends State<MainPage> {
     return [
       getTextWidgetForMsg(),
       new RaisedButton(
-          child: const Text(OPEN_DOOR_BUTTON_LABEL,
+          child: const Text(Constants.OPEN_DOOR_BUTTON_LABEL,
               style: const TextStyle(fontSize: 30.0, color: Colors.blue)),
           onPressed: () => triggeDoorOpenRequest(),
           padding: new EdgeInsets.all(20.0)),
@@ -141,7 +169,7 @@ class MainPageState extends State<MainPage> {
                   alignment: AlignmentDirectional.center,
                   child: new GestureDetector(
                     onLongPress: triggeDoorOpenRequest,
-                    child: new Text(OPEN_DOOR_LONG_PRESS_LABEL,
+                    child: new Text(Constants.OPEN_DOOR_LONG_PRESS_LABEL,
                         textAlign: TextAlign.center,
                         style:
                             new TextStyle(fontSize: 20.0, color: Colors.red)),
@@ -179,10 +207,10 @@ class MainPageState extends State<MainPage> {
     String displayMessage = "";
     switch (isConnected) {
       case true:
-        displayMessage = SUCCESS_INTERNET_MSG;
+        displayMessage = Constants.SUCCESS_INTERNET_MSG;
         break;
       case false:
-        displayMessage = FAILURE_INTERNET_MSG;
+        displayMessage = Constants.FAILURE_INTERNET_MSG;
         break;
     }
 
