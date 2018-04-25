@@ -1,12 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:http/http.dart' as http;
 import 'package:connectivity/connectivity.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
 import 'constants.dart';
 
 class MainPage extends StatefulWidget {
@@ -106,9 +105,7 @@ class MainPageState extends State<MainPage> {
 
   AspectRatio getStackedLayout() {
     return new AspectRatio(
-        aspectRatio: 1.0,
-        child: new Stack(
-            children: getStackedChildrenList()));
+        aspectRatio: 1.0, child: new Stack(children: getStackedChildrenList()));
   }
 
   Center getCenterAlignedLayout() {
@@ -123,36 +120,32 @@ class MainPageState extends State<MainPage> {
   List<Widget> getCenteredChildrenList() {
     return [
       getTextWidgetForMsg(),
-                   new RaisedButton(
-                       child: const Text(OPEN_DOOR_BUTTON_LABEL,
-                           style: const TextStyle(fontSize: 30.0, color: Colors.blue)),
-                       onPressed: () => triggeDoorOpenRequest(),
-                       padding: new EdgeInsets.all(20.0)),
+      new RaisedButton(
+          child: const Text(OPEN_DOOR_BUTTON_LABEL,
+              style: const TextStyle(fontSize: 30.0, color: Colors.blue)),
+          onPressed: () => triggeDoorOpenRequest(),
+          padding: new EdgeInsets.all(20.0)),
     ];
   }
 
   List<Widget> getStackedChildrenList() {
     return [
+      new Positioned(left: 50.0, top: 40.0, child: getTextWidgetForMsg()),
+      new Positioned(left: 80.0, top: 150.0, child: getCircleWidget()),
       new Positioned(
-          left: 50.0,
-          top: 40.0,
-          child: getTextWidgetForMsg()),
-      new Positioned(
-        left: 80.0,
-        top: 150.0,
-          child: getCircleWidget()),
-      new Positioned(
-        left: 120.0,
-        top: 230.0,
+          left: 120.0,
+          top: 230.0,
           child: new Center(
               child: new Container(
-                width: 120.0,
-                alignment: AlignmentDirectional.center,
-                child: new Text("Long Press To Open",
-                    textAlign: TextAlign.center,
-                    style: new TextStyle(fontSize: 20.0, color: Colors.red)),
-              ))
-      )
+                  width: 120.0,
+                  alignment: AlignmentDirectional.center,
+                  child: new GestureDetector(
+                    onLongPress: triggeDoorOpenRequest,
+                    child: new Text(OPEN_DOOR_LONG_PRESS_LABEL,
+                        textAlign: TextAlign.center,
+                        style:
+                            new TextStyle(fontSize: 20.0, color: Colors.red)),
+                  ))))
     ];
   }
 
