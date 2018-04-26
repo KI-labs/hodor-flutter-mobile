@@ -13,6 +13,8 @@ dependencies:
 
   connectivity: "^0.3.0"
 
+  async_loader: "^0.1.1"
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

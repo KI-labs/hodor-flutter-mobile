@@ -1,12 +1,14 @@
 import 'dart:async' show Future, StreamSubscription;
-import 'dart:developer';
-import 'dart:io' show HttpStatus;
 
+import 'package:async_loader/async_loader.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:hodor_mobile/network.dart';
 
 import 'constants.dart' as Constants;
+
+final GlobalKey<AsyncLoaderState> _asyncLoaderState =
+    new GlobalKey<AsyncLoaderState>();
 
 class MainPage extends StatefulWidget {
   MainPage({Key key}) : super(key: key);
@@ -19,7 +21,9 @@ class MainPageState extends State<MainPage> {
   String messageToDisplay = "";
   BuildContext scaffoldContext;
   bool lastConnectionStatus = false; //synonym to isConnected
+  static bool didAppJustStart = false;
 
+  //TODO reset is not working
   void resetDisplay() async {
     //Adding delay of 10 seconds
     await new Future.delayed(const Duration(seconds: 5));
@@ -28,38 +32,32 @@ class MainPageState extends State<MainPage> {
     });
   }
 
-  void triggeDoorOpenRequest() async {
-    if (!lastConnectionStatus) {
-      handleInternetConnectivity(lastConnectionStatus);
-    } else {
-      String responseBody = "";
+  AsyncLoader getAsyncLoader() {
+    return new AsyncLoader(
+      key: _asyncLoaderState,
+      initState: () async => triggeDoorOpenRequest(),
+      renderLoad: () => new CircularProgressIndicator(),
+      renderError: ([error]) =>
+          getTextWidgetForMsg(Constants.FAILURE_OPEN_DOOR_MSG),
+      renderSuccess: ({data}) => getTextWidgetForMsg(data),
+    );
+  }
 
-      try {
-        var httpClient = new NetworkLayer().getHttpClient();
-        var response = await httpClient.post(Constants.MAIN_URL);
+  void onPressedAction() {
+    _asyncLoaderState.currentState.reloadState();
+  }
 
-        log("Successful response: " + response.body);
-
-        if (response.statusCode == HttpStatus.OK) {
-          log("Successful http call."); // Perhaps handle it somehow
-          responseBody = Constants.SUCCESS_OPEN_DOOR_MSG;
-        } else {
-          log("Failed http call."); // Perhaps handle it somehow
-          responseBody = Constants.FAILURE_OPEN_DOOR_MSG;
-        }
-      } catch (exception) {
-        log(exception.toString());
-        responseBody = Constants.FAILURE_OPEN_DOOR_MSG;
+  Future<String> triggeDoorOpenRequest() async {
+    if (!didAppJustStart) {
+      if (!lastConnectionStatus) {
+        handleInternetConnectivity(lastConnectionStatus);
+      } else {
+        return new NetworkLayer().triggerPostAndGetResponse();
       }
-
-      //Update UI state now
-      setState(() {
-        messageToDisplay = responseBody;
-      });
-
-      //reset so that user can clearly see change if button pressed again
-      resetDisplay();
     }
+
+    didAppJustStart = false;
+    return new Future<String>(() => "");
   }
 
   final Connectivity connectivity = new Connectivity();
@@ -68,13 +66,13 @@ class MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
+    didAppJustStart = true;
 
     //// Checking Internet Connection
     connectivitySubscription =
         connectivity.onConnectivityChanged.listen((ConnectivityResult result) {
       setState(() {
-        handleInternetConnectivity(
-            lastConnectionStatus = (result != ConnectivityResult.none));
+        lastConnectionStatus = (result != ConnectivityResult.none);
       });
     });
   }
@@ -100,7 +98,6 @@ class MainPageState extends State<MainPage> {
   }
 
   Widget getMainBodyWidget() {
-//       return getCenterAlignedLayout();
     return getStackedLayout();
   }
 
@@ -109,29 +106,9 @@ class MainPageState extends State<MainPage> {
         aspectRatio: 1.0, child: new Stack(children: getStackedChildrenList()));
   }
 
-  Center getCenterAlignedLayout() {
-    return new Center(
-      child: new Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: getCenteredChildrenList(),
-      ),
-    );
-  }
-
-  List<Widget> getCenteredChildrenList() {
-    return [
-      getTextWidgetForMsg(),
-      new RaisedButton(
-          child: const Text(Constants.OPEN_DOOR_BUTTON_LABEL,
-              style: const TextStyle(fontSize: 30.0, color: Colors.blue)),
-          onPressed: () => triggeDoorOpenRequest(),
-          padding: new EdgeInsets.all(20.0)),
-    ];
-  }
-
   List<Widget> getStackedChildrenList() {
     return [
-      new Positioned(left: 50.0, top: 40.0, child: getTextWidgetForMsg()),
+      new Positioned(left: 80.0, top: 40.0, child: getAsyncLoader()),
       new Positioned(left: 80.0, top: 150.0, child: getCircleWidget()),
       new Positioned(
           left: 120.0,
@@ -141,25 +118,35 @@ class MainPageState extends State<MainPage> {
                   width: 120.0,
                   alignment: AlignmentDirectional.center,
                   child: new GestureDetector(
-                    onLongPress: triggeDoorOpenRequest,
+                    onLongPress: onPressedAction,
                     child: new Text(Constants.OPEN_DOOR_LONG_PRESS_LABEL,
                         textAlign: TextAlign.center,
-                        style:
-                            new TextStyle(fontSize: 20.0, color: Colors.red)),
+                        style: new TextStyle(
+                            fontSize: 20.0,
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold)),
                   ))))
     ];
   }
 
-  Text getTextWidgetForMsg() {
-    return new Text('$messageToDisplay',
-        style: new TextStyle(
-            fontSize: 30.0, fontStyle: FontStyle.normal, color: Colors.yellow));
+  Widget getTextWidgetForMsg(String data) {
+    messageToDisplay = data;
+    resetDisplay();
+    return new Center(
+        child: new Text('$messageToDisplay',
+            softWrap: true,
+            textAlign: TextAlign.left,
+            style: new TextStyle(
+                fontSize: 25.0,
+                fontStyle: FontStyle.normal,
+                color: Colors.yellow,
+                fontWeight: FontWeight.bold)));
   }
 
   Container getCircleWidget() {
     return new Container(
       child: new GestureDetector(
-        onLongPress: triggeDoorOpenRequest,
+        onLongPress: onPressedAction,
       ),
       width: 200.0,
       height: 200.0,
@@ -169,7 +156,7 @@ class MainPageState extends State<MainPage> {
         boxShadow: [
           new BoxShadow(
             offset: new Offset(0.0, 5.0),
-            blurRadius: 30.0,
+            blurRadius: 20.0,
           )
         ],
       ),

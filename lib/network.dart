@@ -1,7 +1,14 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io'
-    show HttpClient, HttpClientBasicCredentials, HttpClientCredentials;
+    show
+        HttpClient,
+        HttpClientBasicCredentials,
+        HttpClientCredentials,
+        HttpStatus;
+
 import 'package:http/http.dart' show BaseClient, IOClient;
+
 import 'constants.dart' as Constants;
 
 typedef Future<bool> HttpAuthenticationCallback(
@@ -15,7 +22,7 @@ class NetworkLayer {
         return new Future.value(true);
       };
 
-  BaseClient createBasicAuthenticationIoHttpClient(
+  BaseClient _createBasicAuthenticationIoHttpClient(
       String userName, String password) {
     final credentials = new HttpClientBasicCredentials(userName, password);
 
@@ -24,9 +31,31 @@ class NetworkLayer {
     return new IOClient(client);
   }
 
-  BaseClient getHttpClient() {
-    return createBasicAuthenticationIoHttpClient(
+  BaseClient _getHttpClient() {
+    return _createBasicAuthenticationIoHttpClient(
         Constants.API_AUTHORIZATION_USERNAME,
         Constants.API_AUTHORIZATION_PASSWORD);
+  }
+
+  Future<String> triggerPostAndGetResponse() async {
+    String responseBody = "";
+    try {
+      var response = await _getHttpClient().post(Constants.MAIN_URL);
+
+//    log("Successful response: " + response.body);
+
+      if (response.statusCode == HttpStatus.OK) {
+//      log("Successful http call."); // Perhaps handle it somehow
+        responseBody = Constants.SUCCESS_OPEN_DOOR_MSG;
+      } else {
+//      log("Failed http call."); // Perhaps handle it somehow
+        responseBody = Constants.FAILURE_OPEN_DOOR_MSG;
+      }
+    } catch (exception) {
+      log(exception.toString());
+      responseBody = Constants.FAILURE_OPEN_DOOR_MSG;
+    }
+
+    return new Future<String>(() => responseBody);
   }
 }
