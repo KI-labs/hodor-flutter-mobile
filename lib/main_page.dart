@@ -20,8 +20,8 @@ class MainPage extends StatefulWidget {
 class MainPageState extends State<MainPage> {
   String messageToDisplay = "";
   BuildContext scaffoldContext;
-  bool lastConnectionStatus = false; //synonym to isConnected
-  static bool didAppJustStart = false;
+  bool isConnected = false;
+  bool didAppJustStart = true;
 
   //TODO reset is not working
   void resetDisplay() async {
@@ -32,10 +32,10 @@ class MainPageState extends State<MainPage> {
     });
   }
 
-  AsyncLoader getAsyncLoader() {
+  AsyncLoader _showProgressBar() {
     return new AsyncLoader(
       key: _asyncLoaderState,
-      initState: () async => triggeDoorOpenRequest(),
+      initState: () async => callDoorOpenRequest(),
       renderLoad: () => new CircularProgressIndicator(),
       renderError: ([error]) =>
           getTextWidgetForMsg(Constants.FAILURE_OPEN_DOOR_MSG),
@@ -43,16 +43,38 @@ class MainPageState extends State<MainPage> {
     );
   }
 
+//  FutureBuilder<String> showProgressBar() {
+//    return new FutureBuilder(
+//      future: callDoorOpenRequest(),
+//        builder: (BuildContext context,
+//            AsyncSnapshot<String> snapshot) {
+//
+//        if(!snapshot.hasData) {
+//          return new MaterialApp(
+//              home: new Scaffold(
+//                body: new Center(
+//                  child: new CircularProgressIndicator(),
+//                ),
+//              )
+//          );
+//        }
+//
+//        String response = snapshot.data;
+//        return getTextWidgetForMsg(response);
+//
+//        });
+//  }
+
   void onPressedAction() {
     _asyncLoaderState.currentState.reloadState();
   }
 
-  Future<String> triggeDoorOpenRequest() async {
+  Future<String> callDoorOpenRequest() async {
     if (!didAppJustStart) {
-      if (!lastConnectionStatus) {
-        handleInternetConnectivity(lastConnectionStatus);
-      } else {
+      if (isConnected) {
         return new NetworkLayer().triggerPostAndGetResponse();
+      } else {
+        handleInternetConnectivity(isConnected);
       }
     }
 
@@ -66,13 +88,12 @@ class MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
-    didAppJustStart = true;
 
     //// Checking Internet Connection
     connectivitySubscription =
         connectivity.onConnectivityChanged.listen((ConnectivityResult result) {
       setState(() {
-        lastConnectionStatus = (result != ConnectivityResult.none);
+        isConnected = (result != ConnectivityResult.none);
       });
     });
   }
@@ -108,7 +129,7 @@ class MainPageState extends State<MainPage> {
 
   List<Widget> getStackedChildrenList() {
     return [
-      new Positioned(left: 80.0, top: 40.0, child: getAsyncLoader()),
+      new Positioned(left: 80.0, top: 40.0, child: _showProgressBar()),
       new Positioned(left: 80.0, top: 150.0, child: getCircleWidget()),
       new Positioned(
           left: 120.0,
@@ -131,7 +152,6 @@ class MainPageState extends State<MainPage> {
 
   Widget getTextWidgetForMsg(String data) {
     messageToDisplay = data;
-    resetDisplay();
     return new Center(
         child: new Text('$messageToDisplay',
             softWrap: true,
