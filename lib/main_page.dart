@@ -4,6 +4,7 @@ import 'package:async_loader/async_loader.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:hodor_mobile/network.dart';
+import 'package:vibrate/vibrate.dart';
 
 import 'constants.dart' as Constants;
 
@@ -22,6 +23,7 @@ class MainPageState extends State<MainPage> {
   BuildContext scaffoldContext;
   bool isConnected = false;
   bool didAppJustStart = true;
+  bool _canVibrate = true;
 
   //TODO reset is not working
   void resetDisplay() async {
@@ -67,12 +69,24 @@ class MainPageState extends State<MainPage> {
   void initState() {
     super.initState();
 
-    //// Checking Internet Connection
+    initConnectivity();
+    initVibrate();
+  }
+
+  //// Checking Internet Connection
+  initConnectivity() {
     connectivitySubscription =
         connectivity.onConnectivityChanged.listen((ConnectivityResult result) {
       setState(() {
         isConnected = (result != ConnectivityResult.none);
       });
+    });
+  }
+
+  initVibrate() async {
+    bool canVibrate = await Vibrate.canVibrate;
+    setState(() {
+      _canVibrate = canVibrate;
     });
   }
 
@@ -128,17 +142,27 @@ class MainPageState extends State<MainPage> {
     ];
   }
 
+  void _handleVibrate() {
+    if (_canVibrate) Vibrate.vibrate();
+  }
+
   Widget getTextWidgetForMsg(String data) {
-    messageToDisplay = data;
-    return new Center(
-        child: new Text('$messageToDisplay',
-            softWrap: true,
-            textAlign: TextAlign.left,
-            style: new TextStyle(
-                fontSize: 25.0,
-                fontStyle: FontStyle.normal,
-                color: Colors.yellow,
-                fontWeight: FontWeight.bold)));
+    if (data.length > 0) {
+      //reflects success case
+      messageToDisplay = data;
+      _handleVibrate();
+      return new Center(
+          child: new Text('$messageToDisplay',
+              softWrap: true,
+              textAlign: TextAlign.left,
+              style: new TextStyle(
+                  fontSize: 25.0,
+                  fontStyle: FontStyle.normal,
+                  color: Colors.yellow,
+                  fontWeight: FontWeight.bold)));
+    } else {
+      return new Text("");
+    }
   }
 
   Container getCircleWidget() {
