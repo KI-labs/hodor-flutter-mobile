@@ -43,28 +43,6 @@ class MainPageState extends State<MainPage> {
     );
   }
 
-//  FutureBuilder<String> showProgressBar() {
-//    return new FutureBuilder(
-//      future: callDoorOpenRequest(),
-//        builder: (BuildContext context,
-//            AsyncSnapshot<String> snapshot) {
-//
-//        if(!snapshot.hasData) {
-//          return new MaterialApp(
-//              home: new Scaffold(
-//                body: new Center(
-//                  child: new CircularProgressIndicator(),
-//                ),
-//              )
-//          );
-//        }
-//
-//        String response = snapshot.data;
-//        return getTextWidgetForMsg(response);
-//
-//        });
-//  }
-
   void onPressedAction() {
     _asyncLoaderState.currentState.reloadState();
   }
