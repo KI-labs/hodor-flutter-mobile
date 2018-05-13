@@ -10,6 +10,7 @@ import 'dart:io'
 import 'package:http/http.dart' show BaseClient, IOClient;
 
 import 'constants.dart' as Constants;
+import 'network_config.dart' as NetworkConfig;
 
 typedef Future<bool> HttpAuthenticationCallback(
     Uri uri, String scheme, String realm);
@@ -33,14 +34,14 @@ class NetworkLayer {
 
   BaseClient _getHttpClient() {
     return _createBasicAuthenticationIoHttpClient(
-        Constants.API_AUTHORIZATION_USERNAME,
-        Constants.API_AUTHORIZATION_PASSWORD);
+        NetworkConfig.API_AUTHORIZATION_USERNAME,
+        NetworkConfig.API_AUTHORIZATION_PASSWORD);
   }
 
   Future<String> triggerPostAndGetResponse() async {
     String responseBody = "";
     try {
-      var response = await _getHttpClient().post(Constants.MAIN_URL);
+      var response = await _getHttpClient().post(NetworkConfig.MAIN_URL);
 
 //    log("Successful response: " + response.body);
 
