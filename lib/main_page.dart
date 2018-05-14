@@ -11,6 +11,59 @@ import 'constants.dart' as Constants;
 final GlobalKey<AsyncLoaderState> _asyncLoaderState =
     new GlobalKey<AsyncLoaderState>();
 
+void onPressedAction() {
+  _asyncLoaderState.currentState.reloadState();
+}
+
+Container unlockButton() {
+  return new Container(
+    child: new GestureDetector(
+      onLongPress: onPressedAction,
+    ),
+    width: 200.0,
+    height: 200.0,
+    decoration: new BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.grey,
+        boxShadow: [
+          new BoxShadow(
+            offset: new Offset(0.0, 5.0),
+            blurRadius: 5.0,
+          )
+        ],
+        image: new DecorationImage(
+            fit: BoxFit.scaleDown,
+            image: new AssetImage(
+                'images/unlock.png'))),
+  );
+}
+
+Container lockButton() {
+  return new Container(
+    child: new GestureDetector(
+      onLongPress: onPressedAction,
+    ),
+    width: 200.0,
+    height: 200.0,
+    decoration: new BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.grey,
+        boxShadow: [
+          new BoxShadow(
+            offset: new Offset(0.0, 5.0),
+            blurRadius: 5.0,
+          )
+        ],
+        image: new DecorationImage(
+            fit: BoxFit.scaleDown,
+            image: new AssetImage(
+                'images/lock.png'))),
+  );
+}
+
+final Container buttonLock = lockButton();
+final Container buttonUnLock = unlockButton();
+
 class MainPage extends StatefulWidget {
   MainPage({Key key}) : super(key: key);
 
@@ -43,10 +96,6 @@ class MainPageState extends State<MainPage> {
           getTextWidgetForMsg(Constants.FAILURE_OPEN_DOOR_MSG),
       renderSuccess: ({data}) => getTextWidgetForMsg(data),
     );
-  }
-
-  void onPressedAction() {
-    _asyncLoaderState.currentState.reloadState();
   }
 
   Future<String> callDoorOpenRequest() async {
@@ -100,7 +149,6 @@ class MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-        backgroundColor: Colors.grey,
         appBar: new AppBar(
           title: const Text(Constants.APP_TITLE),
         ),
@@ -114,21 +162,26 @@ class MainPageState extends State<MainPage> {
     return getStackedLayout();
   }
 
-  AspectRatio getStackedLayout() {
-    return new AspectRatio(
-        aspectRatio: 1.0, child: new Stack(children: getStackedChildrenList()));
+  Container getStackedLayout() {
+    return new Container(
+        decoration: new BoxDecoration(
+            image: new DecorationImage(
+                fit: BoxFit.cover,
+                image: new AssetImage(
+                    'images/background.png'))),
+        child: new Stack(children: getStackedChildrenList()));
   }
 
   List<Widget> getStackedChildrenList() {
     return [
       new Positioned(left: 80.0, top: 40.0, child: _showProgressBar()),
-      new Positioned(left: 80.0, top: 150.0, child: getCircleWidget()),
+      new Positioned(left: 80.0, top: 150.0, child: buttonLock),
       new Positioned(
-          left: 120.0,
-          top: 230.0,
+          left: 80.0,
+          top: 500.0,
           child: new Center(
               child: new Container(
-                  width: 120.0,
+                  width: 200.0,
                   alignment: AlignmentDirectional.center,
                   child: new GestureDetector(
                     onLongPress: onPressedAction,
@@ -136,7 +189,7 @@ class MainPageState extends State<MainPage> {
                         textAlign: TextAlign.center,
                         style: new TextStyle(
                             fontSize: 20.0,
-                            color: Colors.red,
+                            color: Colors.blueGrey,
                             fontWeight: FontWeight.bold)),
                   ))))
     ];
@@ -158,7 +211,7 @@ class MainPageState extends State<MainPage> {
               style: new TextStyle(
                   fontSize: 25.0,
                   fontStyle: FontStyle.normal,
-                  color: Colors.yellow,
+                  color: Colors.green,
                   fontWeight: FontWeight.bold)));
     } else {
       return new Text("");
@@ -183,6 +236,42 @@ class MainPageState extends State<MainPage> {
         ],
       ),
     );
+  }
+
+  Widget updateButtonState(String data) {
+    if (data.length > 0) {
+      //reflects success case
+      messageToDisplay = data;
+      _handleVibrate();
+      return getButton("unlock");
+    } else {
+      return Text("");
+    }
+  }
+
+  Widget hideLockButton() {
+    return new Opacity(
+      opacity: 0.0,
+      child: buttonLock
+    );
+  }
+
+  Widget hideUnlockButton() {
+    return new Opacity(
+        opacity: 0.0,
+        child: buttonUnLock
+    );
+  }
+
+  Widget getButton(String type) {
+    if(type == "lock") {
+      hideUnlockButton();
+      return buttonLock;
+    }
+    else if (type == "unlock") {
+      hideLockButton();
+      return buttonUnLock;
+    }
   }
 
   void handleInternetConnectivity(bool isConnected) {
