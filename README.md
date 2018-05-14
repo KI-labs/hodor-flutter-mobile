@@ -1,6 +1,6 @@
-# hodor_mobile
+# Hodor Mobile
 
-Hodor is a an app that is used to open the KI labs building door
+Hodor is a an app that is developed to conveniently open the door of KI labs building in our Munich office. It is an improved version of the [Slack bot](https://github.com/KI-labs/Hodor) which was already developed by other team members.
 
 ## Getting Started
 
