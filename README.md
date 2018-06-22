@@ -2,6 +2,11 @@
 
 Hodor is a an app that is developed to conveniently open the door of KI labs building in our Munich office. It is an improved version of the [Slack bot](https://github.com/KI-labs/Hodor) which was already developed by other team members.
 
+### UI v1.0
+
+<img src="https://github.com/KI-labs/hodor_flutter_mobile/blob/master/screenshots/v1.0_screenshot_basic.png" width="220" height="400" align="left"> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+<img src="https://github.com/KI-labs/hodor_flutter_mobile/blob/master/screenshots/v1.0_screenshot_success_response.png" width="220" height="400" align="center">
+
 ## Getting Started
 
 For help getting started with Flutter, view online
