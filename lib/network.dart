@@ -32,10 +32,17 @@ class NetworkLayer {
     return new IOClient(client);
   }
 
+  BaseClient _createBasicIoHttpClient() {
+    final client = new HttpClient();
+    return new IOClient(client);
+  }
+
   BaseClient _getHttpClient() {
-    return _createBasicAuthenticationIoHttpClient(
-        NetworkConfig.API_AUTHORIZATION_USERNAME,
-        NetworkConfig.API_AUTHORIZATION_PASSWORD);
+//    return _createBasicAuthenticationIoHttpClient(
+//        NetworkConfig.API_AUTHORIZATION_USERNAME,
+//        NetworkConfig.API_AUTHORIZATION_PASSWORD);
+
+      return _createBasicIoHttpClient();
   }
 
   Future<String> triggerPostAndGetResponse() async {
