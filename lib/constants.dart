@@ -1,4 +1,4 @@
-const String APP_TITLE = "Hodor : KI labs";
+const String APP_TITLE = "HODOR!";
 const String SUCCESS_OPEN_DOOR_MSG = "Now, Open the Door!";
 const String FAILURE_OPEN_DOOR_MSG = "Network Error! Something went wrong";
 const String OPEN_DOOR_BUTTON_LABEL = "Open The Door";
